@@ -1,0 +1,61 @@
+import { SpinBox, Button, CheckBox, Slider, LineEdit, ScrollView, ListView,
+    HorizontalBox, VerticalBox, GridBox, StandardButton } from "std-widgets.slint";
+
+export struct Repository {
+  name: string,
+  full_name: string,
+  url: string,
+}
+
+export struct Subject {
+  title: string,
+  url: string,
+  latest_comment_url: string,
+  type_: string,
+}
+
+export struct Notification {
+  id: string,
+  unread: bool,
+  reason: string,
+  subject: Subject,
+  repository: Repository,
+  url: string,
+}
+
+component MainWindow inherits Window {
+    title: "Notifications";
+    in property <[Notification]> notifications-model: [];
+
+    preferred-width: 600px;
+    preferred-height: 800px;
+
+    VerticalBox {
+        list-view := ListView {
+            for n in root.notifications-model:  HorizontalLayout {
+              HorizontalBox {
+                VerticalBox {
+                Text {
+                    text: n.repository.full_name;
+                }
+
+                Text {
+                    text: n.subject.title;
+                }
+
+                }
+
+                Button {
+                  text: "Go";
+                  width: 50px;
+                }
+
+                Button {
+                  text: "√";
+                  width: 50px;
+                }
+              }
+            }
+        }
+    }
+}
