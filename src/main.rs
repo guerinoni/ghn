@@ -19,6 +19,7 @@ struct RepositoryItem {
     name: String,
     full_name: String,
     url: String,
+    html_url: String,
 }
 
 #[derive(Debug, serde::Deserialize)]
@@ -53,6 +54,14 @@ fn main() {
             tokio::runtime::Runtime::new()
                 .unwrap()
                 .block_on(worker_fetch(main_window_weak))
+        }
+    });
+
+    main_window.on_open_link({
+        move |url| {
+            println!("open link: {}", url);
+            let u = String::from(url);
+            open::that(u).unwrap();
         }
     });
 
@@ -104,6 +113,7 @@ async fn worker_fetch(mw: slint::Weak<MainWindow>) {
                     name: item.repository.name.clone().into(),
                     full_name: item.repository.full_name.clone().into(),
                     url: item.repository.url.clone().into(),
+                    html_url: item.repository.html_url.clone().into(),
                 },
             })
             .collect::<Vec<Notification>>();

@@ -5,6 +5,7 @@ export struct Repository {
   name: string,
   full_name: string,
   url: string,
+  html_url: string,
 }
 
 export struct Subject {
@@ -30,6 +31,8 @@ component MainWindow inherits Window {
     preferred-width: 600px;
     preferred-height: 800px;
 
+    callback open-link(string);
+
     VerticalBox {
         list-view := ListView {
             for n in root.notifications-model:  HorizontalLayout {
@@ -48,6 +51,7 @@ component MainWindow inherits Window {
                 Button {
                   text: "Go";
                   width: 50px;
+                  clicked => {open-link(n.repository.html_url);}
                 }
 
                 Button {
