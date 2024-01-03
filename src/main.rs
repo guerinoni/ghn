@@ -65,7 +65,36 @@ fn main() {
         }
     });
 
+    main_window.on_mark_read({
+        move |id| {
+            let id = String::from(id);
+            tokio::runtime::Runtime::new()
+                .unwrap()
+                .block_on(mark_thread_read(id))
+        }
+    });
+
     main_window.run().unwrap();
+}
+
+async fn mark_thread_read(id: String) {
+    println!("mark read: {}", id);
+    let url = format!("https://api.github.com/notifications/threads/{}", id);
+    let token = std::env::var("GITHUB_TOKEN").unwrap();
+
+    let client = reqwest::Client::new();
+    let response = client
+        .patch(url)
+        .header("Accept", "application/vnd.github+json")
+        .header("Authorization", format!("Bearer {}", token))
+        .header("X-GitHub-Api-Version", "2022-11-28")
+        .header("User-Agent", "ghn")
+        .send()
+        .await
+        .unwrap();
+
+    let r = response.text().await.unwrap();
+    println!("{}", r);
 }
 
 async fn worker_fetch(mw: slint::Weak<MainWindow>) {

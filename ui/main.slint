@@ -25,38 +25,39 @@ export struct Notification {
 }
 
 component MainWindow inherits Window {
-    title: "Notifications";
+    title: "GH Notifications";
     in property <[Notification]> notifications-model: [];
 
     preferred-width: 600px;
     preferred-height: 800px;
 
     callback open-link(string);
+    callback mark-read(string);
 
     VerticalBox {
         list-view := ListView {
             for n in root.notifications-model:  HorizontalLayout {
               HorizontalBox {
                 VerticalBox {
-                Text {
-                    text: n.repository.full_name;
-                }
+                  Text {
+                      text: n.repository.full_name;
+                  }
 
-                Text {
-                    text: n.subject.title;
-                }
-
+                  Text {
+                      text: n.subject.title;
+                  }
                 }
 
                 Button {
                   text: "Go";
                   width: 50px;
-                  clicked => {open-link(n.repository.html_url);}
+                  clicked => { open-link(n.repository.html_url); }
                 }
 
                 Button {
                   text: "√";
                   width: 50px;
+                  clicked => { mark-read(n.id); }
                 }
               }
             }
