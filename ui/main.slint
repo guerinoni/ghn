@@ -33,18 +33,35 @@ component MainWindow inherits Window {
 
     callback open-link(string);
     callback mark-read(string);
+    callback mark-done(string);
+
+    in-out property <bool> unread-only: true;
+    callback apply-filter();
 
     VerticalBox {
+      CheckBox {
+        text: "Show unread only";
+        checked <=> unread-only;
+        toggled => { apply-filter(); }
+      }
+
         list-view := ListView {
             for n in root.notifications-model:  HorizontalLayout {
               HorizontalBox {
-                VerticalBox {
-                  Text {
-                      text: n.repository.full_name;
+                HorizontalBox {
+                  VerticalBox {
+
+                    Text {
+                        text: n.repository.full_name;
+                    }
+
+                    Text {
+                        text: n.subject.title;
+                    }
                   }
 
                   Text {
-                      text: n.subject.title;
+                    text: n.reason + " " + n.subject.type_;
                   }
                 }
 
@@ -57,7 +74,7 @@ component MainWindow inherits Window {
                 Button {
                   text: "√";
                   width: 50px;
-                  clicked => { mark-read(n.id); }
+                  clicked => { mark-done(n.id); }
                 }
               }
             }
