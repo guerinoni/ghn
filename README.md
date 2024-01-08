@@ -4,6 +4,7 @@ GitHub Notifications handler for desktop.
 Right now it is a working in progress, but you can:
 - show unread/read notification
 - go to the link
+  - if is a new comment in PR it brings directly to that comment
 - mark as read
 
 ## Why I created this
