@@ -34,6 +34,8 @@ struct SubjectItem {
 static FETCH_ALL_NOTIFICATIONS: std::sync::atomic::AtomicBool =
     std::sync::atomic::AtomicBool::new(false);
 
+static NOTIFICATIONS: std::sync::Mutex<Vec<NotificationItem>> = std::sync::Mutex::new(vec![]);
+
 fn main() {
     let home = home::home_dir();
     let hosts_path = home.unwrap().join(".config/gh/hosts.yml");
@@ -61,10 +63,49 @@ fn main() {
     });
 
     main_window.on_open_link({
-        move |url| {
+        move |index| {
+            let idx = index.parse::<usize>().unwrap();
+            let binding = NOTIFICATIONS.lock().unwrap();
+            let item = match binding.get(idx) {
+                Some(item) => item,
+                None => return,
+            };
+
+            if item.subject.type_ == "PullRequest" {
+                if let Some(last_comment_url) = &item.subject.latest_comment_url {
+                    let pr = item
+                        .subject
+                        .url
+                        .as_ref()
+                        .unwrap()
+                        .split('/')
+                        .collect::<Vec<&str>>();
+                    let pr = pr.last().unwrap();
+                    let comment = last_comment_url.split('/').collect::<Vec<&str>>();
+                    let comment = comment.last().unwrap();
+                    let url = item.repository.html_url.clone()
+                        + "/pull/"
+                        + pr
+                        + "#issuecomment-"
+                        + comment;
+
+                    println!("open link: {}", url);
+
+                    match open::that(url) {
+                        Ok(_) => println!("open link success"),
+                        Err(e) => println!("open link failed: {}", e),
+                    }
+                    return;
+                }
+            }
+
+            let url = &item.repository.html_url;
             println!("open link: {}", url);
-            let u = String::from(url);
-            open::that(u).unwrap();
+
+            match open::that(url) {
+                Ok(_) => println!("open link success"),
+                Err(e) => println!("open link failed: {}", e),
+            }
         }
     });
 
@@ -73,7 +114,7 @@ fn main() {
             let id = String::from(id);
             tokio::runtime::Runtime::new()
                 .unwrap()
-                .block_on(mark_thread_read(id))
+                .block_on(mark_thread_read(&id))
         }
     });
 
@@ -82,7 +123,7 @@ fn main() {
             let id = String::from(id);
             tokio::runtime::Runtime::new()
                 .unwrap()
-                .block_on(mark_thread_done(id))
+                .block_on(mark_thread_done(&id))
         }
     });
 
@@ -110,7 +151,7 @@ fn main() {
     main_window.run().unwrap();
 }
 
-async fn mark_thread_read(id: String) {
+async fn mark_thread_read(id: &str) {
     println!("mark read: {}", id);
     let url = format!("https://api.github.com/notifications/threads/{}", id);
     let token = std::env::var("GITHUB_TOKEN").unwrap();
@@ -136,7 +177,7 @@ async fn mark_thread_read(id: String) {
     println!("{}", r);
 }
 
-async fn mark_thread_done(id: String) {
+async fn mark_thread_done(id: &str) {
     println!("mark done: {}", id);
     let url = format!("https://api.github.com/notifications/threads/{}", id);
     let token = std::env::var("GITHUB_TOKEN").unwrap();
@@ -181,7 +222,12 @@ async fn fetch_notifications(token: &str, all: bool) -> Vec<Notification> {
     println!("{}", r);
     let notifications: Vec<NotificationItem> = serde_json::from_str(&r).unwrap();
 
-    notifications
+    NOTIFICATIONS.lock().unwrap().clear();
+    NOTIFICATIONS.lock().unwrap().extend(notifications);
+
+    NOTIFICATIONS
+        .lock()
+        .unwrap()
         .iter()
         .map(|item| Notification {
             id: item.id.clone().into(),

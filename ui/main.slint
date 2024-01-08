@@ -45,8 +45,8 @@ component MainWindow inherits Window {
         toggled => { apply-filter(); }
       }
 
-        list-view := ListView {
-            for n in root.notifications-model:  HorizontalLayout {
+        ListView {
+            for n[index] in root.notifications-model:  HorizontalLayout {
               HorizontalBox {
                 HorizontalBox {
                   VerticalBox {
@@ -68,7 +68,7 @@ component MainWindow inherits Window {
                 Button {
                   text: "Go";
                   width: 50px;
-                  clicked => { open-link(n.repository.html_url); }
+                  clicked => { open-link(index); }
                 }
 
                 Button {
