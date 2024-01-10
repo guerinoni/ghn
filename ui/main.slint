@@ -73,6 +73,7 @@ component MainWindow inherits Window {
 
                 Button {
                   text: "√";
+                  visible: n.unread;
                   width: 50px;
                   clicked => { mark-done(n.id); }
                 }
