@@ -14,3 +14,8 @@ Basically I am a user that loves GH notification instead of mails and I like to 
 ## What you can do for this project
 
 Use it :). Raise issues or request of features, improve UI.
+
+## Build instruction
+```zsh
+cargo run
+```
